@@ -1,10 +1,28 @@
 <h2>{{ question.question_text }}</h2>
 <p><small>{{ question.pub_date }}</small></p>
 
-Choices:
-<ul>
-{% for choice in question.choice_set.all %}
-    <li>{{ choice }}</li>
+{% if error_message %}
+    <p><strong>{{ error_message }}</strong></p>
+{% endif %}
+
+<!-- Purpose to see what forloop.counter is  -->
+{% for elem in elems %}
+        <b>{{ elem }}</b><small>{{ forloop.counter }}</small><br>
 {% endfor %}
-</ul>
+<hr>
+
+
+<form action="{% url 'polls:polls-vote' question.id %}" method="post">
+{% csrf_token %}
+{% for choice in question.choice_set.all %}
+    <input type="radio" name="choice" 
+        id="choice{{ forloop.counter }}"
+        value="{{ choice.id }}">
+    <label for="choice{{ forloop.counter }}">
+        {{ choice.choice_text }}
+    </label><br>
+{% endfor %}
+<input type="submit" value="Vote">
+</form>
+
 
