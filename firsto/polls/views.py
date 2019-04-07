@@ -1,45 +1,46 @@
 # Create your views here.
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from django.views import generic
 from .models import Choice, Question
 
 
-def index(request):
-    latest_questions = Question.objects.order_by('-pub_date')[:5]
-    context = {'latest_questions': latest_questions}
-    return render(request, 'polls/index.html', context)  # returns HttpResponse
+class IndexView(generic.ListView):
+    # default: <app name>/<modelname>_list.html -> polls/question_list.html
+    template_name = 'polls/index.html'
+    # default: 'question_list'
+    context_object_name = 'latest_questions'
+
+    def get_queryset(self):
+        """Return the last 5 published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    # default: <app name>/<modelname>_detail.html -> polls/question_detail.html
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+
 
 # def index(request):
-#     from django.template import loader
 #     latest_questions = Question.objects.order_by('-pub_date')[:5]
-#     template = loader.get_template('polls/index.html')
-#     context = {
-#         'latest_questions': latest_questions,
-#     }
-#     return HttpResponse(template.render(context, request))
-
-
-def detail(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'polls/detail.html',
-                  {'question': question, 'elems': ['a', 'b', 'd']})
+#     context = {'latest_questions': latest_questions}
+#     return render(request, 'polls/index.html', context)
 
 
 # def detail(request, question_id):
-#     from django.http import Http404
-#     try:
-#         question = Question.objects.get(pk=question_id)
-#     except Question.DoesNotExist:
-#         raise Http404("Question does not exist")
-#     return render(request, 'polls/detail.html', {'question': question})
+#     question = get_object_or_404(Question, pk=question_id)
+#     return render(request, 'polls/detail.html',
+#                   {'question': question, 'elems': ['a', 'b', 'd']})
 
 
-def results(request, question_id):
-    response = "You're looking at the results of question %s."
-    return HttpResponse(response % question_id)
-
-
+# TODO: Use F() to avoid race condition where 2 users voted concurrently
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
@@ -55,6 +56,6 @@ def vote(request, question_id):
         selected_choice.save()
         # Return HttpResponseRedirect after POST preventing data from posted
         # twice if user hits the Back button
-        return HttpResponseRedirect(reverse('polls:polls-results',
-                                    args=(question.id)
+        return HttpResponseRedirect(reverse('polls:results',
+                                    args=(question.id,)
         ))
