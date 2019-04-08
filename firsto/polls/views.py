@@ -50,7 +50,6 @@ class ResultsView(generic.DetailView):
 #                   {'question': question, 'elems': ['a', 'b', 'd']})
 
 
-# TODO: Use F() to avoid race condition where 2 users voted concurrently
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
